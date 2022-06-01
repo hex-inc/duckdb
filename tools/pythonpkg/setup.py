@@ -55,7 +55,7 @@ class build_ext(CompilerLauncherMixin, _build_ext):
     pass
 
 
-lib_name = 'duckdb'
+lib_name = 'duckdb_internal'
 extension_name = '_duckdb_extension'
 
 extensions = ['parquet', 'icu', 'fts', 'tpch', 'tpcds', 'visualizer', 'json', 'excel', 'substrait']
