@@ -55,7 +55,7 @@ class build_ext(CompilerLauncherMixin, _build_ext):
     pass
 
 
-lib_name = 'duckdb_internal'
+lib_name = 'duckdb'
 extension_name = '_duckdb_extension'
 
 extensions = ['parquet', 'icu', 'fts', 'tpch', 'tpcds', 'visualizer', 'json', 'excel', 'substrait']
@@ -287,8 +287,8 @@ setup(
         'duckdb'
     ],
     include_package_data=True,
-    setup_requires=setup_requires + ["setuptools_scm"] + ['pybind11>=2.6.0'],
-    use_scm_version = setuptools_scm_conf,
+    setup_requires=setup_requires + ['pybind11>=2.6.0'],
+    version="0.3.5.dev16",
     tests_require=['pytest'],
     classifiers = [
         'Topic :: Database :: Database Engines/Servers',
