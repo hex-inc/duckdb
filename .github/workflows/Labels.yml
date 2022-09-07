@@ -1,9 +1,5 @@
 name: Labels
 
-on:
-  issues:
-    types: [opened]
-
 jobs:
   change-label:
     runs-on: ubuntu-latest

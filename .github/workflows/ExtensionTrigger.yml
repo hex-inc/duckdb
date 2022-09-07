@@ -1,7 +1,4 @@
 name: Extension Trigger
-on:
-  push:
-    branches: [ "master" ]
 
 jobs:
   build-linux:
