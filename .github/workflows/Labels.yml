@@ -1,5 +1,8 @@
 name: Labels
 
+on:
+  workflow_dispatch:
+
 jobs:
   change-label:
     runs-on: ubuntu-latest
