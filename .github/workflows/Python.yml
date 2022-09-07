@@ -191,6 +191,11 @@ jobs:
         cibuildwheel --output-dir wheelhouse --config-file cibw.toml duckdb_tarball
         ls wheelhouse
 
+    - uses: actions/upload-artifact@v3
+      with:
+        name: duckDB-linux-wheels
+        path: tools/pythonpkg/wheelhouse
+
    osx-python3:
       name: Python 3 OSX
       runs-on: macos-latest
@@ -232,6 +237,11 @@ jobs:
           export DISTUTILS_C_COMPILER_LAUNCHER=ccache
           # TODO: Use ccache inside container, see https://github.com/pypa/cibuildwheel/issues/1030
           cibuildwheel --output-dir wheelhouse --config-file cibw.toml duckdb_tarball
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: duckDB-osx-wheels
+          path: tools/pythonpkg/wheelhouse
 
    python-address-sanitizer:
       name: Python Address Sanitizer (Linux)
