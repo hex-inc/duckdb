@@ -1,5 +1,7 @@
 ### Some simple scripts to build and deploy to the Hex internal PyPI index for this fork
 
+See also: https://www.notion.so/hexhq/Our-DuckDB-fork-d9cf30bf316e4e8686c54bc70f856964
+
 #### Prerequisites
 
 This assumes you already have built wheels for the version you want to deploy. This should be handled by the GitHub actions on this repo but talk to @dylanscott or @TimNonet if you need help with this.
