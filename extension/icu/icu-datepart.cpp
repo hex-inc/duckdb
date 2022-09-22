@@ -203,6 +203,14 @@ struct ICUDatePart : public ICUDateFunc {
 		return Date::EpochToDate(ExtractEpoch(calendar, 0));
 	}
 
+	static string_t Monthname(icu::Calendar *calendar, const uint64_t micros) {
+	    return Date::MONTH_NAMES[ExtractMonth(calendar, micros) - 1];
+	}
+
+	static string_t Dayname(icu::Calendar *calendar, const uint64_t micros) {
+		return Date::DAY_NAMES[ExtractDayOfWeek(calendar, micros)];
+	}
+
 	template <typename RESULT_TYPE>
 	struct BindAdapterData : public BindData {
 		using result_t = RESULT_TYPE;
@@ -355,6 +363,29 @@ struct ICUDatePart : public ICUDateFunc {
 		result.Verify(count);
 	}
 
+	template <typename INPUT_TYPE>
+	static void NameFunction(DataChunk &args, ExpressionState &state, Vector &result) {
+		using bind_t = BindAdapterData<string_t>;
+		D_ASSERT(args.ColumnCount() == 1);
+		auto &date_arg = args.data[0];
+
+		auto &func_expr = (BoundFunctionExpression &)state.expr;
+		auto &info = (bind_t &)*func_expr.bind_info;
+		CalendarPtr calendar_ptr(info.calendar->clone());
+		auto calendar = calendar_ptr.get();
+
+		UnaryExecutor::ExecuteWithNulls<INPUT_TYPE, string_t>(date_arg, result, args.size(),
+		                                                         [&](INPUT_TYPE input, ValidityMask &mask, idx_t idx) {
+			                                                         if (Timestamp::IsFinite(input)) {
+				                                                         const auto micros = SetTime(calendar, input);
+				                                                         return info.adapters[0](calendar, micros);
+			                                                         } else {
+				                                                         mask.SetInvalid(idx);
+				                                                         return string_t();
+			                                                         }
+		                                                         });
+	}
+
 	template <typename BIND_TYPE>
 	static unique_ptr<FunctionData> BindAdapter(ClientContext &context, ScalarFunction &bound_function,
 	                                            vector<unique_ptr<Expression>> &arguments,
@@ -482,6 +513,46 @@ struct ICUDatePart : public ICUDateFunc {
 		CreateScalarFunctionInfo func_info(set);
 		catalog.AddFunction(context, &func_info);
 	}
+
+	static unique_ptr<FunctionData> BindMonthname(ClientContext &context, ScalarFunction &bound_function,
+	                                              vector<unique_ptr<Expression>> &arguments) {
+		using data_t = BindAdapterData<string_t>;
+		return BindAdapter<data_t>(context, bound_function, arguments, Monthname);
+	}
+
+	template <typename INPUT_TYPE>
+	static ScalarFunction GetMonthnameFunction(const LogicalType &temporal_type) {
+		return ScalarFunction({temporal_type}, LogicalType::VARCHAR, NameFunction<INPUT_TYPE>,
+		                      BindMonthname);
+	}
+
+	static void AddMonthnameFunctions(ClientContext &context) {
+		auto &catalog = Catalog::GetSystemCatalog(context);
+		ScalarFunctionSet monthname("monthname");
+		monthname.AddFunction(GetMonthnameFunction<timestamp_t>(LogicalType::TIMESTAMP_TZ));
+		CreateScalarFunctionInfo func_info(monthname);
+		catalog.AddFunction(context, &func_info);
+	}
+
+	static unique_ptr<FunctionData> BindDayname(ClientContext &context, ScalarFunction &bound_function,
+	                                            vector<unique_ptr<Expression>> &arguments) {
+		using data_t = BindAdapterData<string_t>;
+		return BindAdapter<data_t>(context, bound_function, arguments, Dayname);
+	}
+
+	template <typename INPUT_TYPE>
+	static ScalarFunction GetDaynameFunction(const LogicalType &temporal_type) {
+		return ScalarFunction({temporal_type}, LogicalType::VARCHAR, NameFunction<INPUT_TYPE>,
+		                      BindDayname);
+	}
+
+	static void AddDaynameFunctions(ClientContext &context) {
+		auto &catalog = Catalog::GetSystemCatalog(context);
+		ScalarFunctionSet dayname("dayname");
+		dayname.AddFunction(GetDaynameFunction<timestamp_t>(LogicalType::TIMESTAMP_TZ));
+		CreateScalarFunctionInfo func_info(dayname);
+		catalog.AddFunction(context, &func_info);
+	}
 };
 
 void RegisterICUDatePartFunctions(ClientContext &context) {
@@ -523,6 +594,10 @@ void RegisterICUDatePartFunctions(ClientContext &context) {
 	// finally the actual date_part function
 	ICUDatePart::AddDatePartFunctions("date_part", context);
 	ICUDatePart::AddDatePartFunctions("datepart", context);
+
+	// Hex patch: add dayname/monthname
+	ICUDatePart::AddMonthnameFunctions(context);
+	ICUDatePart::AddDaynameFunctions(context);
 }
 
 } // namespace duckdb
