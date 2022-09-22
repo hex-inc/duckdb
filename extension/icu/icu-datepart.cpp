@@ -203,6 +203,14 @@ struct ICUDatePart : public ICUDateFunc {
 		return Date::EpochToDate(ExtractEpoch(calendar, 0));
 	}
 
+	static string_t Monthname(icu::Calendar *calendar, const uint64_t micros) {
+	    return Date::MONTH_NAMES[ExtractMonth(calendar, micros) - 1];
+	}
+
+	static string_t Dayname(icu::Calendar *calendar, const uint64_t micros) {
+		return Date::DAY_NAMES[ExtractDayOfWeek(calendar, micros)];
+	}
+
 	template <typename RESULT_TYPE>
 	struct BindAdapterData : public BindData {
 		using result_t = RESULT_TYPE;
@@ -482,6 +490,46 @@ struct ICUDatePart : public ICUDateFunc {
 		CreateScalarFunctionInfo func_info(set);
 		catalog.AddFunction(context, &func_info);
 	}
+
+	static unique_ptr<FunctionData> BindMonthname(ClientContext &context, ScalarFunction &bound_function,
+	                                              vector<unique_ptr<Expression>> &arguments) {
+		using data_t = BindAdapterData<string_t>;
+		return BindAdapter<data_t>(context, bound_function, arguments, Monthname);
+	}
+
+	template <typename INPUT_TYPE>
+	static ScalarFunction GetMonthnameFunction(const LogicalType &temporal_type) {
+		return ScalarFunction({temporal_type}, LogicalType::VARCHAR, UnaryTimestampFunction<INPUT_TYPE, string_t>,
+		                      BindMonthname);
+	}
+
+	static void AddMonthnameFunctions(ClientContext &context) {
+		auto &catalog = Catalog::GetCatalog(context);
+		ScalarFunctionSet monthname("monthname");
+		monthname.AddFunction(GetMonthnameFunction<timestamp_t>(LogicalType::TIMESTAMP_TZ));
+		CreateScalarFunctionInfo func_info(monthname);
+		catalog.AddFunction(context, &func_info);
+	}
+
+	static unique_ptr<FunctionData> BindDayname(ClientContext &context, ScalarFunction &bound_function,
+	                                            vector<unique_ptr<Expression>> &arguments) {
+		using data_t = BindAdapterData<string_t>;
+		return BindAdapter<data_t>(context, bound_function, arguments, Dayname);
+	}
+
+	template <typename INPUT_TYPE>
+	static ScalarFunction GetDaynameFunction(const LogicalType &temporal_type) {
+		return ScalarFunction({temporal_type}, LogicalType::VARCHAR, UnaryTimestampFunction<INPUT_TYPE, string_t>,
+		                      BindDayname);
+	}
+
+	static void AddDaynameFunctions(ClientContext &context) {
+		auto &catalog = Catalog::GetCatalog(context);
+		ScalarFunctionSet dayname("dayname");
+		dayname.AddFunction(GetDaynameFunction<timestamp_t>(LogicalType::TIMESTAMP_TZ));
+		CreateScalarFunctionInfo func_info(dayname);
+		catalog.AddFunction(context, &func_info);
+	}
 };
 
 void RegisterICUDatePartFunctions(ClientContext &context) {
@@ -523,6 +571,10 @@ void RegisterICUDatePartFunctions(ClientContext &context) {
 	// finally the actual date_part function
 	ICUDatePart::AddDatePartFunctions("date_part", context);
 	ICUDatePart::AddDatePartFunctions("datepart", context);
+
+	// Hex patch: add dayname/monthname
+	ICUDatePart::AddMonthnameFunctions(context);
+	ICUDatePart::AddDaynameFunctions(context);
 }
 
 } // namespace duckdb
