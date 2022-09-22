@@ -363,6 +363,29 @@ struct ICUDatePart : public ICUDateFunc {
 		result.Verify(count);
 	}
 
+	template <typename INPUT_TYPE>
+	static void NameFunction(DataChunk &args, ExpressionState &state, Vector &result) {
+		using bind_t = BindAdapterData<string_t>;
+		D_ASSERT(args.ColumnCount() == 1);
+		auto &date_arg = args.data[0];
+
+		auto &func_expr = (BoundFunctionExpression &)state.expr;
+		auto &info = (bind_t &)*func_expr.bind_info;
+		CalendarPtr calendar_ptr(info.calendar->clone());
+		auto calendar = calendar_ptr.get();
+
+		UnaryExecutor::ExecuteWithNulls<INPUT_TYPE, string_t>(date_arg, result, args.size(),
+		                                                         [&](INPUT_TYPE input, ValidityMask &mask, idx_t idx) {
+			                                                         if (Timestamp::IsFinite(input)) {
+				                                                         const auto micros = SetTime(calendar, input);
+				                                                         return info.adapters[0](calendar, micros);
+			                                                         } else {
+				                                                         mask.SetInvalid(idx);
+				                                                         return string_t();
+			                                                         }
+		                                                         });
+	}
+
 	template <typename BIND_TYPE>
 	static unique_ptr<FunctionData> BindAdapter(ClientContext &context, ScalarFunction &bound_function,
 	                                            vector<unique_ptr<Expression>> &arguments,
@@ -499,7 +522,7 @@ struct ICUDatePart : public ICUDateFunc {
 
 	template <typename INPUT_TYPE>
 	static ScalarFunction GetMonthnameFunction(const LogicalType &temporal_type) {
-		return ScalarFunction({temporal_type}, LogicalType::VARCHAR, UnaryTimestampFunction<INPUT_TYPE, string_t>,
+		return ScalarFunction({temporal_type}, LogicalType::VARCHAR, NameFunction<INPUT_TYPE>,
 		                      BindMonthname);
 	}
 
@@ -519,7 +542,7 @@ struct ICUDatePart : public ICUDateFunc {
 
 	template <typename INPUT_TYPE>
 	static ScalarFunction GetDaynameFunction(const LogicalType &temporal_type) {
-		return ScalarFunction({temporal_type}, LogicalType::VARCHAR, UnaryTimestampFunction<INPUT_TYPE, string_t>,
+		return ScalarFunction({temporal_type}, LogicalType::VARCHAR, NameFunction<INPUT_TYPE>,
 		                      BindDayname);
 	}
 
