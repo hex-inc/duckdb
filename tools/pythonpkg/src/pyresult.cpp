@@ -456,7 +456,6 @@ py::str GetTypeToPython(const LogicalType &type) {
 	}
 	case LogicalTypeId::JSON:
 	case LogicalTypeId::VARCHAR:
-	case LogicalTypeId::UUID:
 		return py::str("STRING");
 	case LogicalTypeId::BLOB:
 		return py::str("BINARY");
@@ -482,6 +481,9 @@ py::str GetTypeToPython(const LogicalType &type) {
 	}
 	case LogicalTypeId::INTERVAL: {
 		return py::str("TIMEDELTA");
+	}
+	case LogicalTypeId::UUID: {
+		return py::str("UUID");
 	}
 	case LogicalTypeId::USER:
 	case LogicalTypeId::ENUM: {
