@@ -94,6 +94,9 @@ BoundCastInfo DefaultCasts::TimestampTzCastSwitch(BindCastInput &input, const Lo
 	case LogicalTypeId::VARCHAR:
 		// timestamp with time zone to varchar
 		return BoundCastInfo(&VectorCastHelpers::StringCast<timestamp_t, duckdb::StringCastTZ>);
+	case LogicalTypeId::DATE:
+		// timestamp with time zone to date
+		return BoundCastInfo(&VectorCastHelpers::TemplatedCastLoop<timestamp_t, date_t, duckdb::Cast>);
 	case LogicalTypeId::TIME_TZ:
 		// timestamp with time zone to time with time zone.
 		// TODO: set the offset to +00
