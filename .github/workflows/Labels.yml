@@ -1,8 +1,7 @@
 name: Labels
 
 on:
-  issues:
-    types: [opened]
+  workflow_dispatch:
 
 jobs:
   change-label:
