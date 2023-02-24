@@ -1,24 +1,6 @@
 name: Regression
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - '**'
-      - '!master'
-      - '!feature'
-    paths-ignore:
-      - '**.md'
-      - 'tools/**'
-      - '!tools/pythonpkg/**'
-      - '.github/workflows/**'
-      - '!.github/workflows/Regression.yml'
-  pull_request:
-    paths-ignore:
-      - '**.md'
-      - 'tools/**'
-      - '!tools/pythonpkg/**'
-      - '.github/workflows/**'
-      - '!.github/workflows/Regression.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}-${{ github.head_ref || '' }}-${{ github.base_ref || '' }}-${{ github.ref != 'refs/heads/master' || github.sha }}
