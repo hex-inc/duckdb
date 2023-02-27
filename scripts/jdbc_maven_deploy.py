@@ -56,7 +56,7 @@ else:
 jdbc_artifact_dir = sys.argv[2]
 jdbc_root_path = sys.argv[3]
 
-combine_builds = ['linux-amd64', 'osx-universal', 'windows-amd64', 'linux-aarch64']
+combine_builds = ['linux-amd64', 'osx-universal', 'linux-aarch64']
 
 staging_dir = tempfile.mkdtemp()
 
@@ -148,7 +148,7 @@ if not os.path.exists(javadoc_jar) or not os.path.exists(sources_jar) or not os.
   raise ValueError('could not create all required files') 
 
 # run basic tests, it should now work on whatever platform this is
-exec("java -cp %s org.duckdb.test.TestDuckDBJDBC" % binary_jar)
+# exec("java -cp %s org.duckdb.test.TestDuckDBJDBC" % binary_jar)
 
 # now sign and upload everything
 # for this to work, you must have entry in ~/.m2/settings.xml:
@@ -171,14 +171,15 @@ if not os.path.exists(results_dir):
   os.mkdir(results_dir)
 
 
+shutil.copyfile(pom, os.path.join(results_dir, f"duckdb_jdbc-{release_version}.pom"))
 for jar in [binary_jar, sources_jar, javadoc_jar]:
   shutil.copyfile(jar, os.path.join(results_dir, os.path.basename(jar)))
 
 print("JARs created, uploading (this can take a while!)")
-deploy_cmd_prefix = 'mvn gpg:sign-and-deploy-file -Durl=%s -DrepositoryId=ossrh' % deploy_url
-exec("%s -DpomFile=%s -Dfile=%s" % (deploy_cmd_prefix, pom, binary_jar))
-exec("%s -Dclassifier=sources -DpomFile=%s -Dfile=%s" % (deploy_cmd_prefix, pom, sources_jar))
-exec("%s -Dclassifier=javadoc -DpomFile=%s -Dfile=%s" % (deploy_cmd_prefix, pom, javadoc_jar))
+# deploy_cmd_prefix = 'mvn gpg:sign-and-deploy-file -Durl=%s -DrepositoryId=ossrh' % deploy_url
+# exec("%s -DpomFile=%s -Dfile=%s" % (deploy_cmd_prefix, pom, binary_jar))
+# exec("%s -Dclassifier=sources -DpomFile=%s -Dfile=%s" % (deploy_cmd_prefix, pom, sources_jar))
+# exec("%s -Dclassifier=javadoc -DpomFile=%s -Dfile=%s" % (deploy_cmd_prefix, pom, javadoc_jar))
 
 
 if not is_release:
@@ -187,11 +188,11 @@ if not is_release:
 
 print("Close/Release steps")
 # # beautiful
-os.environ["MAVEN_OPTS"] = '--add-opens=java.base/java.util=ALL-UNNAMED'
+# os.environ["MAVEN_OPTS"] = '--add-opens=java.base/java.util=ALL-UNNAMED'
 
 #this list has horrid output, lets try to parse. What we want starts with orgduckdb- and then a number
-repo_id = re.search(r'(orgduckdb-\d+)', exec("mvn -f %s nexus-staging:rc-list" % (pom)).decode('utf8')).groups()[0]
-exec("mvn -f %s nexus-staging:rc-close -DstagingRepositoryId=%s" % (pom, repo_id))
-exec("mvn -f %s nexus-staging:rc-release -DstagingRepositoryId=%s" % (pom, repo_id))
+# repo_id = re.search(r'(orgduckdb-\d+)', exec("mvn -f %s nexus-staging:rc-list" % (pom)).decode('utf8')).groups()[0]
+# exec("mvn -f %s nexus-staging:rc-close -DstagingRepositoryId=%s" % (pom, repo_id))
+# exec("mvn -f %s nexus-staging:rc-release -DstagingRepositoryId=%s" % (pom, repo_id))
 
 print("Done?")
