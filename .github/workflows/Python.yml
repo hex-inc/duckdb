@@ -108,8 +108,6 @@ jobs:
       SETUPTOOLS_SCM_NO_LOCAL: 'yes'
       PYTEST_TIMEOUT: '600'
       DUCKDB_BUILD_UNITY: 1
-      BUILD_HTTPFS: 1
-      STATIC_OPENSSL: 1
 
     steps:
     - uses: actions/checkout@v3
@@ -171,8 +169,6 @@ jobs:
         CIBW_TEST_COMMAND: 'python -m pytest {project}/tests/fast'
         SETUPTOOLS_SCM_NO_LOCAL: 'yes'
         DUCKDB_BUILD_UNITY: 1
-        BUILD_HTTPFS: 1
-        STATIC_OPENSSL: 1
 
       steps:
       - uses: actions/checkout@v3
