@@ -203,7 +203,7 @@ def build_package(target_dir, extensions, linenumbers = False, unity_count = 32,
     curdir = os.getcwd()
     os.chdir(os.path.join(scripts_dir, '..'))
     githash = git_commit_hash()
-    dev_version = git_dev_version()
+    dev_version = "0.7.1" # git_dev_version()
     os.chdir(curdir)
     # open the file and read the current contents
     fpath = os.path.join(target_dir, 'src', 'function', 'table', 'version', 'pragma_version.cpp')

@@ -262,7 +262,7 @@ def generate_duckdb_hpp(header_file):
         if extended_amalgamation:
             hfile.write("#define DUCKDB_AMALGAMATION_EXTENDED 1\n")
         hfile.write("#define DUCKDB_SOURCE_ID \"%s\"\n" % git_commit_hash())
-        hfile.write("#define DUCKDB_VERSION \"%s\"\n" % git_dev_version())
+        hfile.write("#define DUCKDB_VERSION \"%s\"\n" % "0.7.1")
 
         for fpath in main_header_files:
             hfile.write(write_file(fpath))
