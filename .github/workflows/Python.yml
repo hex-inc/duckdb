@@ -219,10 +219,17 @@ jobs:
         cibuildwheel --output-dir wheelhouse --config-file pyproject.toml duckdb_tarball
         ls wheelhouse
 
+    - name: Create artifact name
+      id: artifact
+      run: |
+        # Remove asterisk from python_build (e.g., cp39-* becomes cp39-)
+        CLEAN_NAME=$(echo "${{ matrix.python_build }}" | tr -d '*')
+        echo "name=wheels-linux-${{ matrix.arch }}-${CLEAN_NAME}" >> $GITHUB_OUTPUT
+
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: python-wheels-linux-${{ matrix.arch }}-${{ matrix.python_build }}
+        name: ${{ steps.artifact.outputs.name }}
         path: tools/pythonpkg/wheelhouse/*.whl
 
     - name: Deploy
@@ -290,10 +297,17 @@ jobs:
           fi
           cibuildwheel --output-dir wheelhouse --config-file pyproject.toml duckdb_tarball
 
+      - name: Create artifact name
+        id: artifact
+        run: |
+          # Remove asterisk from python_build (e.g., cp39-* becomes cp39-)
+          CLEAN_NAME=$(echo "${{ matrix.python_build }}" | tr -d '*')
+          echo "name=wheels-osx-${CLEAN_NAME}" >> $GITHUB_OUTPUT
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: python-wheels-osx-${{ matrix.python_build }}
+          name: ${{ steps.artifact.outputs.name }}
           path: tools/pythonpkg/wheelhouse/*.whl
 
       - name: Deploy
@@ -381,10 +395,17 @@ jobs:
           fi
           cibuildwheel --output-dir wheelhouse --config-file pyproject.toml duckdb_tarball
 
+      - name: Create artifact name
+        id: artifact
+        run: |
+          # Remove asterisk from python_build (e.g., cp39-* becomes cp39-)
+          CLEAN_NAME=$(echo "${{ matrix.python_build }}" | tr -d '*')
+          echo "name=wheels-win-${CLEAN_NAME}" >> $GITHUB_OUTPUT
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: python-wheels-win-${{ matrix.python_build }}
+          name: ${{ steps.artifact.outputs.name }}
           path: tools/pythonpkg/wheelhouse/*.whl
 
       - name: Deploy
