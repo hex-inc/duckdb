@@ -219,6 +219,12 @@ jobs:
         cibuildwheel --output-dir wheelhouse --config-file pyproject.toml duckdb_tarball
         ls wheelhouse
 
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: python-wheels-linux-${{ matrix.arch }}-${{ matrix.python_build }}
+        path: tools/pythonpkg/wheelhouse/*.whl
+
     - name: Deploy
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.S3_DUCKDB_STAGING_ID }}
@@ -283,6 +289,12 @@ jobs:
             export CIBW_TEST_COMMAND='python -m pytest {project}/tests/fast/api/test_dbapi00.py  --verbose'
           fi
           cibuildwheel --output-dir wheelhouse --config-file pyproject.toml duckdb_tarball
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-wheels-osx-${{ matrix.python_build }}
+          path: tools/pythonpkg/wheelhouse/*.whl
 
       - name: Deploy
         env:
@@ -368,6 +380,12 @@ jobs:
             export CIBW_TEST_COMMAND='python -m pytest {project}/tests/fast/api/test_dbapi00.py  --verbose'
           fi
           cibuildwheel --output-dir wheelhouse --config-file pyproject.toml duckdb_tarball
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-wheels-win-${{ matrix.python_build }}
+          path: tools/pythonpkg/wheelhouse/*.whl
 
       - name: Deploy
         env:
